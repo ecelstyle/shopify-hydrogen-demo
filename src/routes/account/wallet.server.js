@@ -1,5 +1,3 @@
-import { useSession, fetchSync, CacheNone } from '@shopify/hydrogen';
-
 export async function api(request, { session }) {
   if (!session) {
     return new Response('Session storage not available.', {
@@ -13,8 +11,9 @@ export async function api(request, { session }) {
 
       var wallet = sessionData.customerWalletAddress;
       //TODO REMOVE , READ SESSION SUCCESS
+      console.log({ customerWalletAddress: wallet });
       wallet = '0xd1f6d50ca8f245db6358cea2680675e6039f9caa';
-      //console.log(customerWalletAddress: wallet);
+      console.log({ customerWalletAddress: wallet });
       return { customerWalletAddress: wallet };
     case 'POST':
       const jsonBody = await request.json();

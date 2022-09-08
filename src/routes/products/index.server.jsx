@@ -1,5 +1,12 @@
 import { Suspense } from 'react';
-import { useShopQuery, gql, useLocalization, Seo } from '@shopify/hydrogen';
+import {
+  useShopQuery,
+  gql,
+  useLocalization,
+  Seo,
+  fetchSync,
+  CacheNone,
+} from '@shopify/hydrogen';
 
 import { PRODUCT_CARD_FRAGMENT } from '~/lib/fragments';
 import { PAGINATION_SIZE } from '~/lib/const';
@@ -20,11 +27,83 @@ export default function AllProducts() {
   );
 }
 
+var queryFilter = 'tag_not:nft*';
+
 function AllProductsGrid() {
   const {
     language: { isoCode: languageCode },
     country: { isoCode: countryCode },
   } = useLocalization();
+
+  queryFilter = 'tag_not:nft*';
+
+  var customerWalletAddress = '';
+
+  const wallet = fetchSync('/account/wallet', {
+    preload: true,
+    cache: CacheNone(),
+  }).json();
+
+  customerWalletAddress = wallet.customerWalletAddress;
+
+  if (customerWalletAddress != undefined) {
+    const nfts = fetchSync(
+      'https://polygon-mainnet.g.alchemyapi.io/nft/v2/LSGxtnWyqLArr-uC4xDSAlIeHDX5BDIg/getNFTs?owner=' +
+        customerWalletAddress,
+      {
+        preload: true,
+        cache: CacheNone(),
+      }
+    ).json();
+
+    var tokens = [];
+    if (nfts.ownedNfts != null) {
+      for (let i = 0; i < nfts.ownedNfts.length; i++) {
+        var obj = {};
+        obj.address = nfts.ownedNfts[i].contract.address;
+        obj.tokenId = parseInt(nfts.ownedNfts[i].id.tokenId, 16);
+        tokens.push(obj);
+      }
+    }
+
+    console.log(tokens);
+
+    queryFilter = '';
+
+    for (let i = 0; i < tokens.length; i++) {
+      if (
+        tokens[i].address == '0x818143e1543c038285c9f4a59432d280cc7ca77d' ||
+        tokens[i].address == '0x8dC7b6EC6FafA36085EE9ec8e39112428D3360aa'
+      ) {
+        if (queryFilter != '') queryFilter += ' OR';
+        queryFilter += 'tag:nft-' + tokens[i].tokenId;
+      }
+    }
+  }
+  //queryFilter += ' OR tag_not:nft*';
+
+  const ALL_PRODUCTS_QUERY = gql`
+  ${PRODUCT_CARD_FRAGMENT}
+  query AllProducts(
+    $country: CountryCode
+    $language: LanguageCode
+    $pageBy: Int!
+    $cursor: String
+  ) @inContext(country: $country, language: $language) {
+    products(first: $pageBy, after: $cursor, query: "${queryFilter}") {
+      nodes {
+        ...ProductCard
+      }
+      pageInfo {
+        hasNextPage
+        startCursor
+        endCursor
+      }
+    }
+  }
+`;
+
+  console.log(ALL_PRODUCTS_QUERY);
 
   const { data } = useShopQuery({
     query: ALL_PRODUCTS_QUERY,
@@ -74,27 +153,6 @@ export async function api(request, { params, queryShop }) {
     },
   });
 }
-
-const ALL_PRODUCTS_QUERY = gql`
-  ${PRODUCT_CARD_FRAGMENT}
-  query AllProducts(
-    $country: CountryCode
-    $language: LanguageCode
-    $pageBy: Int!
-    $cursor: String
-  ) @inContext(country: $country, language: $language) {
-    products(first: $pageBy, after: $cursor) {
-      nodes {
-        ...ProductCard
-      }
-      pageInfo {
-        hasNextPage
-        startCursor
-        endCursor
-      }
-    }
-  }
-`;
 
 const PAGINATE_ALL_PRODUCTS_QUERY = gql`
   ${PRODUCT_CARD_FRAGMENT}

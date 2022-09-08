@@ -9,8 +9,6 @@ export default function NewsletterSignupForm() {
     });
     //alert(accounts[0]);
     await callSetApi(accounts[0]);
-    //navigate('/');
-    //setAddress(accounts[0]);
   }
 
   async function callSetApi(value) {
