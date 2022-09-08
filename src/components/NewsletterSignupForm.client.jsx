@@ -1,4 +1,4 @@
-import { useNavigation } from '@shopify/hydrogen';
+import { useNavigate, useServerProps } from '@shopify/hydrogen';
 
 export default function NewsletterSignupForm() {
   const navigate = useNavigate();
@@ -9,7 +9,8 @@ export default function NewsletterSignupForm() {
     });
     //alert(accounts[0]);
     await callSetApi(accounts[0]);
-    navigate('/');
+    //navigate('/');
+    //setAddress(accounts[0]);
   }
 
   async function callSetApi(value) {
