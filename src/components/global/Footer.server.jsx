@@ -6,7 +6,7 @@ import NewsletterSignup from '~/components/NewsletterSignup.server';
 /**
  * A server component that specifies the content of the footer on the website
  */
-export function Footer({ menu }) {
+export function Footer({ menu, session }) {
   const { pathname } = useUrl();
 
   const localeMatch = /^\/([a-z]{2})(\/|$)/i.exec(pathname);
@@ -29,7 +29,7 @@ export function Footer({ menu }) {
         bg-primary dark:bg-contrast dark:text-primary text-contrast overflow-hidden`}
     >
       <FooterMenu menu={menu} />
-      <NewsletterSignup />
+      <NewsletterSignup session={session} />
       <section className="grid gap-4 w-full md:max-w-[335px] md:ml-auto">
         <Heading size="lead" className="cursor-default" as="h3">
           Country

@@ -1,13 +1,20 @@
+import { useNavigation } from '@shopify/hydrogen';
+
 export default function NewsletterSignupForm() {
+  const navigate = useNavigate();
+
   async function connect() {
     const accounts = await window.ethereum.request({
       method: 'eth_requestAccounts',
     });
-    alert(accounts[0]);
-    callSetApi(accounts[0]);
+    //alert(accounts[0]);
+    await callSetApi(accounts[0]);
+    navigate('/');
   }
 
-  async function callSetApi({ value }) {
+  async function callSetApi(value) {
+    var reqBody = {};
+    reqBody['address'] = value;
     try {
       const res = await fetch(`/account/wallet`, {
         method: 'POST',
@@ -15,7 +22,7 @@ export default function NewsletterSignupForm() {
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ value }),
+        body: JSON.stringify(reqBody),
       });
       if (res.ok) {
         return {};

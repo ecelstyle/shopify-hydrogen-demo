@@ -16,6 +16,8 @@ export async function api(request, { session }) {
 
   const jsonBody = await request.json();
 
+  console.log(jsonBody);
+
   if (!jsonBody.address) {
     return new Response(JSON.stringify({ error: 'Incorrect wallet address' }), {
       status: 400,
@@ -23,6 +25,10 @@ export async function api(request, { session }) {
   }
 
   await session.set('customerWalletAddress', jsonBody.address);
+
+  var test = await session.get('customerWalletAddress');
+
+  console.log(test);
 
   return new Response();
 }
